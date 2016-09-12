@@ -42,6 +42,9 @@ type WebsocketProxy struct {
 	//  Dialer contains options for connecting to the backend WebSocket server.
 	//  If nil, DefaultDialer is used.
 	Dialer *websocket.Dialer
+
+	// Custom headers that will be added to the websocket request
+	CustomHeaders map[string]string
 }
 
 // ProxyHandler returns a new http.Handler interface that reverse proxies the
@@ -119,6 +122,11 @@ func (w *WebsocketProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	requestHeader.Set("X-Forwarded-Proto", "http")
 	if req.TLS != nil {
 		requestHeader.Set("X-Forwarded-Proto", "https")
+	}
+
+	// Add the custom headers to the request
+	for key, value := range w.CustomHeaders {
+		requestHeader.Add(key, value)
 	}
 
 	// Connect to the backend URL, also pass the headers we get from the requst
